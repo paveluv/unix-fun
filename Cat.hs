@@ -32,19 +32,20 @@ infixr 4 <>
 
 catNumbered :: L.ByteString -> IO ()
 catNumbered s =
-  (\(_, _, builder) -> B.hPutBuilder stdout builder) $
+  (\(_, builder) -> B.hPutBuilder stdout builder) $
   L.foldl
-    (\(n, newline, builder) ch ->
-       case (newline, ch) of
-         (True, _) ->
-           let spaces = L.replicate (max 0 $ 6 - intLog10 n) ' ' in
-           (n, False, foldl (<>) builder [B.lazyByteString spaces, B.int64Dec n, B.char8 '\t', B.char8 ch])
-         (False, '\n') ->
-           (n + 1, True, builder <> B.char8 ch)
-         (_, _) ->
-           (n, False, builder <> B.char8 ch)
+    (\((n, newline), builder) ch ->
+      ( case ch of
+          '\n' -> (n + 1, True)
+          _ -> (n, False)
+      , case newline of
+          True ->
+            let spaces = L.replicate (max 0 $ 6 - intLog10 n) ' ' in
+            foldl (<>) builder [B.lazyByteString spaces, B.int64Dec n, B.char8 '\t', B.char8 ch]
+          False ->
+            builder <> B.char8 ch)
     )
-    (1 :: Int64, True, mempty)
+    ((1 :: Int64, True), mempty)
     s
   where
     intLog10 x
