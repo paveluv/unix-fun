@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Main where
 
 import           Control.Applicative
@@ -40,18 +42,17 @@ catNumbered s =
        ( case ch of
            '\n' -> (n + 1, True)
            _    -> (n, False)
-       , case newline of
-           True ->
-             let spaces = L.replicate (max 0 $ 6 - intLog10 n) ' '
-             in foldl
-                  (<>)
-                  builder
-                  [ B.lazyByteString spaces
-                  , B.int64Dec n
-                  , B.char8 '\t'
-                  , B.char8 ch
-                  ]
-           False -> builder <> B.char8 ch))
+       , if newline
+           then let spaces = L.replicate (max 0 $ 6 - intLog10 n) ' '
+                in foldl
+                     (<>)
+                     builder
+                     [ B.lazyByteString spaces
+                     , B.int64Dec n
+                     , B.char8 '\t'
+                     , B.char8 ch
+                     ]
+           else builder <> B.char8 ch))
     ((1 :: Int64, True), mempty)
     s
   where
@@ -69,12 +70,11 @@ main = do
 --  let filters = [filterN']
 --  let cat = \s -> putStr $ foldl (\s f -> f s) s filters
   let cat =
-        if elem N flags
+        if N `elem` flags
           then catNumbered
           else L.putStr
   forM_
     filepaths
-    (\filepath ->
-       case filepath of
-         "-"      -> cat =<< L.getContents
-         filename -> cat =<< L.readFile filename)
+    (\case
+       "-" -> cat =<< L.getContents
+       filename -> cat =<< L.readFile filename)
