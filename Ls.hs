@@ -49,11 +49,14 @@ lsItems flags items' = do
         then (\_ -> True)
         else (\(name, _) -> head name /= '.')
 
-lsDir :: [Flag] -> FilePath -> IO ()
-lsDir flags dirpath = do
+lsDir :: [Flag] -> Bool -> FilePath -> IO ()
+lsDir flags withName dirpath = do
   names <- getDirectoryContents dirpath
   statuses <- sequence [getFileStatus (dirpath </> name) | name <- names]
   let items = zip names statuses
+  if withName
+    then printf "%s:\n" dirpath
+    else return ()
   lsItems flags items
 
 main :: IO ()
@@ -66,11 +69,7 @@ main = do
   statuses <- sequence [getFileStatus name | name <- names]
   let nast = sortBy (cmpFunc flags) $ zip names statuses
   let (dirs, files) = partition (\(na, st) -> isDirectory st) nast
-  lsItems flags files
-  if length files > 0 && length dirs > 0 then printf "\n" else return ()
-  forM_ dirs 
-    (\(na, st) -> do
-      if length nast > 0
-        then printf "%s:\n" na
-        else return ()
-      lsDir flags na)
+  let dirWithName = length nast > 1
+  let chunks = (if length files > 0 then [lsItems flags files] else []) ++ [lsDir flags dirWithName na | (na, st) <- dirs]
+  sequence_ $ intersperse (printf "\n") chunks
+
