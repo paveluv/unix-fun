@@ -34,9 +34,9 @@ getOptions = do
           "Include directory entries whose names begin with a dot (.)."
       ]
 
-cmpFunc :: [Flag] -> (FilePath, FileStatus) -> (FilePath, FileStatus) -> Ordering
-cmpFunc flags (name1, status1) (name2, status2) =
-  compare name1 name2
+cmpFunc ::
+     [Flag] -> (FilePath, FileStatus) -> (FilePath, FileStatus) -> Ordering
+cmpFunc flags (name1, status1) (name2, status2) = compare name1 name2
 
 lsItems :: [Flag] -> [(FilePath, FileStatus)] -> IO ()
 lsItems flags items' = do
@@ -46,7 +46,7 @@ lsItems flags items' = do
   where
     itemFilter =
       if FlagA `elem` flags
-        then (\_ -> True)
+        then const True
         else (\(name, _) -> head name /= '.')
 
 lsDir :: [Flag] -> Bool -> FilePath -> IO ()
@@ -54,9 +54,7 @@ lsDir flags withName dirpath = do
   names <- getDirectoryContents dirpath
   statuses <- sequence [getFileStatus (dirpath </> name) | name <- names]
   let items = zip names statuses
-  if withName
-    then printf "%s:\n" dirpath
-    else return ()
+  when withName $ printf "%s:\n" dirpath
   lsItems flags items
 
 main :: IO ()
@@ -70,6 +68,7 @@ main = do
   let nast = sortBy (cmpFunc flags) $ zip names statuses
   let (dirs, files) = partition (\(na, st) -> isDirectory st) nast
   let dirWithName = length nast > 1
-  let chunks = (if length files > 0 then [lsItems flags files] else []) ++ [lsDir flags dirWithName na | (na, st) <- dirs]
+  let chunks =
+        [lsItems flags files | not (null files)] ++
+        [lsDir flags dirWithName na | (na, st) <- dirs]
   sequence_ $ intersperse (printf "\n") chunks
-
