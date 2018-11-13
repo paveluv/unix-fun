@@ -2,17 +2,17 @@
 
 module Main where
 
-import           Control.Applicative
-import           Control.Monad
-import qualified Data.ByteString.Builder    as B
-import qualified Data.ByteString.Char8      as S
+import Control.Applicative
+import Control.Monad
+import qualified Data.ByteString.Builder as B
+import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as L
-import           Data.Int
-import           Data.List
-import           System.Console.GetOpt
-import           System.Environment
-import           System.IO
-import           Text.Printf
+import Data.Int
+import Data.List
+import System.Console.GetOpt
+import System.Environment
+import System.IO
+import Text.Printf
 
 data Flag =
   N
@@ -29,11 +29,6 @@ getOptions = do
     header = "Usage: cat [OPTION]... [FILE]..."
     options = [Option "n" ["number"] (NoArg N) "number all output lines"]
 
-infixr 4 <>
-
-(<>) :: Monoid m => m -> m -> m
-(<>) = mappend
-
 catNumbered :: L.ByteString -> IO ()
 catNumbered s =
   (\(_, builder) -> B.hPutBuilder stdout builder) $
@@ -41,17 +36,17 @@ catNumbered s =
     (\((n, newline), builder) ch ->
        ( case ch of
            '\n' -> (n + 1, True)
-           _    -> (n, False)
+           _ -> (n, False)
        , if newline
            then let spaces = L.replicate (max 0 $ 6 - intLog10 n) ' '
-                in foldl
-                     (<>)
-                     builder
-                     [ B.lazyByteString spaces
-                     , B.int64Dec n
-                     , B.char8 '\t'
-                     , B.char8 ch
-                     ]
+                 in foldl
+                      (<>)
+                      builder
+                      [ B.lazyByteString spaces
+                      , B.int64Dec n
+                      , B.char8 '\t'
+                      , B.char8 ch
+                      ]
            else builder <> B.char8 ch))
     ((1 :: Int64, True), mempty)
     s

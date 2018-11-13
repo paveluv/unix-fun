@@ -41,7 +41,7 @@ cmpFunc flags (name1, status1) (name2, status2) = compare name1 name2
 lsItems :: [Flag] -> [(FilePath, FileStatus)] -> IO ()
 lsItems flags items' = do
   let items = filter itemFilter items'
-  let sortedItems = sortBy (cmpFunc flags) items
+      sortedItems = sortBy (cmpFunc flags) items
   forM_ sortedItems (\(na, st) -> printf "%s\n" na)
   where
     itemFilter =
@@ -66,9 +66,9 @@ main = do
           else filepaths
   statuses <- sequence [getFileStatus name | name <- names]
   let nast = sortBy (cmpFunc flags) $ zip names statuses
-  let (dirs, files) = partition (\(na, st) -> isDirectory st) nast
-  let dirWithName = length nast > 1
-  let chunks =
+      (dirs, files) = partition (\(na, st) -> isDirectory st) nast
+      dirWithName = length nast > 1
+      chunks =
         [lsItems flags files | not (null files)] ++
         [lsDir flags dirWithName na | (na, st) <- dirs]
   sequence_ $ intersperse (printf "\n") chunks

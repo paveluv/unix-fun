@@ -1,0 +1,56 @@
+name:                unix-fun
+version:             0.1.0.0
+github:              "puvar/unix-fun"
+license:             BSD3
+author:              "Pavel Uvarov"
+maintainer:          "puvar@puvar.net"
+copyright:           "Pavel Uvarov"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/puvar/unix-fun#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+executables:
+  cat:
+    main:                Main.hs
+    source-dirs:         cat
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - bytestring
+  ls:
+    main:                Main.hs
+    source-dirs:         ls
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - directory
+    - filepath
+    - unix
+
+# tests:
+#   unix-fun-test:
+#     main:                Spec.hs
+#     source-dirs:         test
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     dependencies:
+#     - unix-fun
