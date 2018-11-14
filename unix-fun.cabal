@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9f1c3ee64e82660ef740d102829b105ae9f6fc5c6e4dc5129b6760a5b1e44f7c
+-- hash: 966127970e1b080913c22abf7b41beec2e9a4437eb0fe6b74a3a6f2f7762eeea
 
 name:           unix-fun
 version:        0.1.0.0
@@ -47,5 +47,6 @@ executable ls
       base >=4.7 && <5
     , directory
     , filepath
+    , terminal-size
     , unix
   default-language: Haskell2010

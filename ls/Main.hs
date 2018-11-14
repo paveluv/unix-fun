@@ -38,17 +38,57 @@ cmpFunc ::
      [Flag] -> (FilePath, FileStatus) -> (FilePath, FileStatus) -> Ordering
 cmpFunc flags (name1, status1) (name2, status2) = compare name1 name2
 
+listToMatrix :: Int -> [String] -> [[String]]
+listToMatrix rowSize list = addRow list
+  where
+    addRow [] = []
+    addRow list =
+      let (row, rest) = splitAt rowSize list
+       in row : addRow rest
+
+printTable :: Int -> Int -> [String] -> IO ()
+printTable nColumns columnWidth strings =
+  let nRows = (length strings + nColumns - 1) `quot` nColumns
+      matrix = transpose $ listToMatrix nRows strings
+   in forM_ matrix printRow
+  where
+    printRow [] = putChar '\n'
+    printRow (head:[]) = do
+      putStr head
+      putChar '\n'
+    printRow (head:tail) = do
+      putStr head
+      putStr $ replicate (columnWidth - length head) ' '
+      printRow tail
+
+tableParams :: [String] -> IO (Int, Int)
+tableParams strings = do
+  isTerminal <- hIsTerminalDevice stdout
+  when isTerminal $ return (1, 0)
+  columns <- SE.getEnv "COLUMNS"
+  case readMaybe columns :: Maybe Int of
+    Just n ->
+      let maxLength = maximum [length str | str <- strings]
+          tabWidth = 8
+          columnWidth = (maxLength + tabWidth) `quot` tabWidth * tabWidth
+          nColumns = n `quot` columnWidth
+       in return (nColumns, columnWidth)
+    Nothing -> return (1, 0)
+
 lsItems :: [Flag] -> [(FilePath, FileStatus)] -> IO ()
 lsItems flags items' = do
   let items = filter itemFilter items'
       sortedItems = sortBy (cmpFunc flags) items
-  forM_ sortedItems (\(na, st) -> printf "%s\n" na)
+      names = [na | (na, _) <- sortedItems]
+   in do (nColumns, columnWidth) <- tableParams names
+         printTable nColumns columnWidth names
   where
     itemFilter =
       if FlagA `elem` flags
         then const True
         else (\(name, _) -> head name /= '.')
 
+--  forM_ sortedItems (\(na, st) -> printf "%s\n" na)
 lsDir :: [Flag] -> Bool -> FilePath -> IO ()
 lsDir flags withName dirpath = do
   names <- getDirectoryContents dirpath

@@ -3,3 +3,4 @@ unix-fun.cabal
 *~
 .*.swp
 dist/
+tags
