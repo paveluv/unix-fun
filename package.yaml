@@ -43,6 +43,7 @@ executables:
     - directory
     - filepath
     - unix
+    - terminal-size
 
 # tests:
 #   unix-fun-test:

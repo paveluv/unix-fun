@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 966127970e1b080913c22abf7b41beec2e9a4437eb0fe6b74a3a6f2f7762eeea
+-- hash: d89bdf311c411622c427074c0aaae0d1ff1b0f993ed950908d2a3563f63bc08a
 
 name:           unix-fun
 version:        0.1.0.0
@@ -15,10 +17,9 @@ copyright:      Pavel Uvarov
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
-    ChangeLog.md
     README.md
+    ChangeLog.md
 
 source-repository head
   type: git

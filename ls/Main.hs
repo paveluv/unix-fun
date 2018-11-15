@@ -2,14 +2,16 @@ module Main where
 
 import Control.Applicative
 import Control.Monad
+import Data.Functor
 import Data.List
 import System.Console.GetOpt
+import qualified System.Console.Terminal.Size as TS
 import System.Directory
 import System.Environment
 import System.FilePath
 import System.IO
 import System.Posix.Files
-import Text.Printf
+import Text.Read
 
 data Flag
   = FlagA
@@ -63,15 +65,15 @@ printTable nColumns columnWidth strings =
 
 tableParams :: [String] -> IO (Int, Int)
 tableParams strings = do
-  isTerminal <- hIsTerminalDevice stdout
-  when isTerminal $ return (1, 0)
-  columns <- SE.getEnv "COLUMNS"
-  case readMaybe columns :: Maybe Int of
-    Just n ->
+  size <- TS.hSize stdout
+  case size of
+    Just w -> do
+      columns <-
+        lookupEnv "COLUMNS" <&> maybe (TS.width w) (maybe 80 id . readMaybe)
       let maxLength = maximum [length str | str <- strings]
           tabWidth = 8
           columnWidth = (maxLength + tabWidth) `quot` tabWidth * tabWidth
-          nColumns = n `quot` columnWidth
+          nColumns = columns `quot` columnWidth
        in return (nColumns, columnWidth)
     Nothing -> return (1, 0)
 
@@ -94,7 +96,9 @@ lsDir flags withName dirpath = do
   names <- getDirectoryContents dirpath
   statuses <- sequence [getFileStatus (dirpath </> name) | name <- names]
   let items = zip names statuses
-  when withName $ printf "%s:\n" dirpath
+  when withName $ do
+    putStr dirpath
+    putStr ":\n"
   lsItems flags items
 
 main :: IO ()
@@ -111,4 +115,4 @@ main = do
       chunks =
         [lsItems flags files | not (null files)] ++
         [lsDir flags dirWithName na | (na, st) <- dirs]
-  sequence_ $ intersperse (printf "\n") chunks
+  sequence_ $ intersperse (putChar '\n') chunks
