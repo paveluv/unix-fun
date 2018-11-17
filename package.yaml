@@ -44,6 +44,7 @@ executables:
     - filepath
     - unix
     - terminal-size
+    - time
 
 # tests:
 #   unix-fun-test:

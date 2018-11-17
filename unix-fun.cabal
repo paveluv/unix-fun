@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d89bdf311c411622c427074c0aaae0d1ff1b0f993ed950908d2a3563f63bc08a
+-- hash: eea0e9421f3aa21ada26000746dda687e2f0197f7eb2aadf803031dfc8896487
 
 name:           unix-fun
 version:        0.1.0.0
@@ -49,5 +49,6 @@ executable ls
     , directory
     , filepath
     , terminal-size
+    , time
     , unix
   default-language: Haskell2010
