@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eea0e9421f3aa21ada26000746dda687e2f0197f7eb2aadf803031dfc8896487
+-- hash: 5e19ef91c029b3a99f79a322b67b62dfead11f090e189110e95640222f3cd159
 
 name:           unix-fun
 version:        0.1.0.0
@@ -43,7 +43,7 @@ executable ls
       Paths_unix_fun
   hs-source-dirs:
       ls
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O3
   build-depends:
       base >=4.7 && <5
     , directory
