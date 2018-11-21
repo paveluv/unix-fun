@@ -39,6 +39,10 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 # extra-deps: []
+extra-deps:
+- github: puvar/unix
+  commit: 3dc84390106d2b604ce696ba478666e4fda9be66
+- directory-1.3.3.1
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
