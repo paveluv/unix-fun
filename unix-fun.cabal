@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5e19ef91c029b3a99f79a322b67b62dfead11f090e189110e95640222f3cd159
+-- hash: 259ae9eccce6a46c9bb16b5136a3d4cf424a66cd6a1e3c886190fa603e23306a
 
 name:           unix-fun
 version:        0.1.0.0
@@ -24,6 +24,17 @@ extra-source-files:
 source-repository head
   type: git
   location: https://github.com/puvar/unix-fun
+
+library
+  exposed-modules:
+      Pavel.Xnu.Xattr
+  other-modules:
+      Paths_unix_fun
+  hs-source-dirs:
+      lib
+  build-depends:
+      base
+  default-language: Haskell2010
 
 executable cat
   main-is: Main.hs
@@ -51,4 +62,5 @@ executable ls
     , terminal-size
     , time
     , unix
+    , unix-fun
   default-language: Haskell2010

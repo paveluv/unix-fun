@@ -22,6 +22,11 @@ description:         Please see the README on GitHub at <https://github.com/puva
 dependencies:
 - base >= 4.7 && < 5
 
+library:
+  source-dirs: lib
+  dependencies:
+  - base
+
 executables:
   cat:
     main:                Main.hs
@@ -46,6 +51,7 @@ executables:
     - unix
     - terminal-size
     - time
+    - unix-fun
 
 
 
