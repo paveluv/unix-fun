@@ -95,12 +95,16 @@ listToMatrix rowSize list = addRow list
 data PadSide
     = PadLeft
     | PadRight
+    | NoPad
 
-printLong :: Opts -> [(FilePath, FileStatus)] -> IO ()
-printLong opts items = do
+printLong :: Opts -> FilePath -> [(FilePath, FileStatus)] -> IO ()
+printLong opts dirpath items = do
     (total, table) <- buildTable
-    putStr "total "
-    putStrLn $ show total
+    if length table > 0
+        then do
+            putStr "total "
+            putStrLn $ show total
+        else return ()
     forM_ table (printRow $ calcWidths table)
   where
     entryType status
@@ -112,7 +116,7 @@ printLong opts items = do
         | isNamedPipe status = 'p'
         | otherwise = '-'
     hasMode mode filemode = intersectFileModes mode filemode == mode
-    hasStickyBit (CMode modeWord) = testBit modeWord 9 -- TODO: should be in XNU lib
+    hasStickyBit (CMode modeWord) = testBit modeWord 9 -- TODO: should be in Posix lib
     fileModeStr status =
         let filemode = fileMode status
             qif a b c =
@@ -163,16 +167,22 @@ printLong opts items = do
         groupName <- getGroupName opts (fileGroup status)
         currentTime <- getCurrentTime
         timeStr <- getTimeStr currentTime status
+        lastCol <-
+            if isSymbolicLink status
+                then do
+                    linkTarget <- getSymbolicLinkTarget (dirpath </> path)
+                    return $ path ++ " -> " ++ linkTarget
+                else return path
         let size = fileSize status
          in return
                 ( total + (blockCount status)
-                , [ (PadLeft, fileModeStr status)
-                  , (PadRight, show $ linkCount status)
-                  , (PadLeft, ownerName)
-                  , (PadLeft, ' ' : groupName)
-                  , (PadRight, ' ' : (show $ size))
-                  , (PadRight, timeStr)
-                  , (PadLeft, path)
+                , [ (PadRight, fileModeStr status)
+                  , (PadLeft, ' ' : (show $ linkCount status))
+                  , (PadRight, ownerName)
+                  , (PadRight, ' ' : groupName)
+                  , (PadLeft, ' ' : (show $ size))
+                  , (PadLeft, timeStr)
+                  , (NoPad, lastCol)
                   ] :
                   rows)
     buildTable = do
@@ -187,11 +197,12 @@ printLong opts items = do
                 [ let padding = replicate (width - length str) ' '
                    in case padSide of
                           PadLeft -> do
-                              putStr str
                               putStr padding
+                              putStr str
                           PadRight -> do
-                              putStr padding
                               putStr str
+                              putStr padding
+                          NoPad -> putStr str
                 | ((padSide, str), width) <- zip row widths
                 ]
         putChar '\n'
@@ -229,11 +240,11 @@ printShort names = do
             putStr $ replicate (columnWidth - length head) ' '
             printRow tail
 
-lsItems :: Opts -> [(FilePath, FileStatus)] -> IO ()
-lsItems opts items = do
+lsItems :: Opts -> FilePath -> [(FilePath, FileStatus)] -> IO ()
+lsItems opts dirpath items = do
     let items' = sortBy (cmpFunc opts) $ filter itemFilter items
      in if flag_l opts
-            then printLong opts items'
+            then printLong opts dirpath items'
             else printShort [na | (na, _) <- items']
   where
     itemFilter =
@@ -246,11 +257,7 @@ fileStatus opts name = do
     if flag_L opts
         then getFileStatus name
         else do
-            isLink <- pathIsSymbolicLink name
-            if isLink
-                then do
-                    getSymbolicLinkStatus name
-                else getFileStatus name
+            getSymbolicLinkStatus name
 
 lsDir :: Opts -> Bool -> FilePath -> IO ()
 lsDir opts withName dirpath = do
@@ -260,7 +267,7 @@ lsDir opts withName dirpath = do
     when withName $ do
         putStr dirpath
         putStr ":\n"
-    lsItems opts items
+    lsItems opts dirpath items
 
 cmpFunc :: Opts -> (FilePath, FileStatus) -> (FilePath, FileStatus) -> Ordering
 cmpFunc opts (name1, status1) (name2, status2) = compare name1 name2
@@ -276,7 +283,7 @@ main = do
     let nast = sortBy (cmpFunc opts) $ zip names statuses
         (dirs, files) = partition (\(na, st) -> isDirectory st) nast
         dirWithName = length nast > 1
-     in do when (length files > 0) (lsItems opts files)
+     in do when (length files > 0) (lsItems opts "." files)
            when (length files > 0 && length dirs > 0) $ putChar '\n'
            sequence_ $
                intersperse
